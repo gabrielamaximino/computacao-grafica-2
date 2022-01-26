@@ -1,111 +1,134 @@
-// // import { scene } from './elementos/Cena.js';
-import {OrbitControls} from "./externo/OrbitControls.js"
 import * as THREE from './externo/three.module.js';
-// console.log(scene);
+import {OrbitControls} from "./externo/OrbitControls.js"
+import {Water} from './externo/Water.js'
+import {Sky} from './externo/Sky.js'
 
-// 3 elementos basicos pra cena
-const scene = new THREE.Scene();
+// Fonte: https://www.liquid.fish/current/threejs
+function SceneManager(canvas) {
 
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const scene = buildScene();
+    const renderer = buildRenderer(canvas);
+    const camera = buildCamera();
+    const sphere = buildSphere();
+    const sky = buildSky();
+    const sun = buildSun();
+    const water = buildWater();
+    const orbitCon = setOrbitControls();
 
-const renderer = new THREE.WebGLRenderer();
-renderer.setSize(window.innerWidth, window.innerHeight);
+    function buildScene() {
+        const scene = new THREE.Scene();
+        return scene;
+    }
 
-document.body.appendChild(renderer.domElement);
+    function buildRenderer(canvas) {
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        canvas.appendChild(renderer.domElement);
+        return renderer;
+    }
 
-const controlador = new OrbitControls(camera, renderer.domElement);
-console.log(controlador);
-// 3 elementos pro cubo
-var geometria = new THREE.BoxGeometry();
-var material = new THREE.MeshBasicMaterial({color: 0x00ff00});
+    function buildCamera() {
+        const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 20000);
+        camera.position.set(30, 30, 100);
+        return camera;
+    }
 
-// adicionando textura no cubo
-const loader = new THREE.TextureLoader();
-//vamo mudar o material
+    // Objects
+    function buildSky() {
+        const sky = new Sky();
+        sky.scale.setScalar(10000);
+        scene.add(sky);
+        return sky;
+    }
 
-material = new THREE.MeshBasicMaterial({map: loader.load('./assets/images/grama.jpg')})
+    function buildSun() {
+        const pmremGenerator = new THREE.PMREMGenerator( renderer );
+        
+        const sun = new THREE.Vector3();
 
-var cubo = new THREE.Mesh(geometria, material);
+        const theta = Math.PI * (0.49 - 0.5);
+        const phi = 2 * Math.PI * (0.205 - 0.5);
 
-//nao da pra ver ele ainda, tem q add na cena
-scene.add(cubo);
+        sun.x = Math.cos(phi);
+        sun.y = Math.sin(phi) * Math.sin(theta);
+        sun.z = Math.sin(phi) * Math.cos(theta);
 
-// mas ele é adicionado no ponto 0,0 e a camera tbm. é como se a camera tivesse dentro do cubo. precisamos colocar a camera mais pra tras pra ver o cubo de longe
+        sky.material.uniforms['sunPosition'].value.copy(sun);
 
-camera.position.z = 10;
-// camera.position.x = 2;
-// camera.position.y = 1;
+        scene.environment = pmremGenerator.fromScene(sky).texture;
+        return sun;
+    }
 
-// agora preciso renderizar a cena q criei
+    function buildWater() {
+        const waterGeometry = new THREE.PlaneGeometry(10000, 10000);
+        const water = new Water(
+          waterGeometry,
+          {
+            textureWidth: 512,
+            textureHeight: 512,
+            waterNormals: new THREE.TextureLoader().load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/waternormals.jpg', function ( texture ) {
+              texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+            }),
+            alpha: 1.0,
+            sunDirection: new THREE.Vector3(),
+            sunColor: 0xffffff,
+            waterColor: 0x001e0f,
+            distortionScale: 3.7,
+            fog: scene.fog !== undefined
+          }
+        );
+        water.rotation.x =- Math.PI / 2;
+        scene.add(water);
+        
+        const waterUniforms = water.material.uniforms;
+        return water;
+    }
+  
+    function buildSphere() {
+        const geometry = new THREE.SphereGeometry(20, 100, 100);
+        const material = new THREE.MeshStandardMaterial( {
+            color: 0xfcc742} );
 
-// agora vamos ver as trasformações. 3 tipos: 
+        const sphere = new THREE.Mesh(geometry, material);
+        scene.add(sphere);
+        return sphere;
+    }
 
-//rotação
-cubo.rotation.x = 90;
-cubo.rotation.y = 90;
-cubo.rotation.z = 30;
+    function setOrbitControls() {
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.maxPolarAngle = Math.PI * 0.495;
+        controls.target.set(0, 10, 0);
+        controls.minDistance = 40.0;
+        controls.maxDistance = 200.0;
+        controls.update();
+        return controls;
+    }
 
+    this.update = function() {
+        // Animates water
+        water.material.uniforms[ 'time' ].value += 1.0 / 60.0;
 
-// escala
-cubo.scale.x = 2
-cubo.scale.y = 3
-cubo.scale.z = 2
+        const time = performance.now() * 0.001;
+        sphere.position.y = Math.sin( time ) * 2;
+        sphere.rotation.x = time * 0.3;
+        sphere.rotation.z = time * 0.3;
+        renderer.render(scene, camera);
+    }
 
-// posição
-cubo.position.x = 1;
-cubo.position.y = 2;
-cubo.position.z = 0;
-
-// ou usar a que seta as 3: cubo.position.set(1, 2, 0);
-// o mesmo serve para a rotação: cubo.rotation.set(x, y, z) e posição: cubo.position.set(x, y, z);
-
-
-// ANIMAÇÃO
-
-function animacao() {
-    requestAnimationFrame(animacao);
-
-    // precisa ser incrementado. se ficar estático ele não muda.
-    cubo.rotation.z += 0.01;
-
-    // cubo.scale.x += 0.001;
-
-    // cubo.position.z -= 0.1;
-
-    // é preciso renderizar toda vez que acontecer a animação:
-    renderer.render(scene, camera);
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+    }
+    window.addEventListener('resize', onWindowResize);
 }
 
-animacao();
+const canvas = document.getElementById("canvas");
+const sceneManager = new SceneManager(canvas);
 
-// primitivas: cubo, cilindro, cone..
-// nivel de detalhes = numero de faces = quarto argumento
-geometria = new THREE.CylinderGeometry(1, 1, 2, 100);
-material = new THREE.MeshBasicMaterial({color: 0x0fff000})
-
-const cilindro = new THREE.Mesh(geometria, material);
-
-cilindro.position.x = 3;
-
-scene.add(cilindro);
-
-// plano: só é renderizado na frente. é muito usado para fazer terreno.
-geometria = new THREE.PlaneGeometry(1, 2);
-material = new THREE.MeshBasicMaterial({color: 0x0f0})
-var plano = new THREE.Mesh(geometria, material);
-
-plano.position.x = -7;
-
-scene.add(plano);
-
-function animacao2() {
-    requestAnimationFrame(animacao2);
-
-    plano.rotation.y += 0.01;
-
-    renderer.render(scene, camera);
+function animate() {
+    requestAnimationFrame(animate);
+    sceneManager.update();
 }
-
-animacao2();
-renderer.render(scene, camera);
-
+animate();
