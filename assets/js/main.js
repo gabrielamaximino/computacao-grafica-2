@@ -9,7 +9,7 @@ function SceneManager(canvas) {
     const scene = buildScene();
     const renderer = buildRenderer(canvas);
     const camera = buildCamera();
-    const sphere = buildSphere();
+    const sand = buildSand();
     const sky = buildSky();
     const sun = buildSun();
     const water = buildWater();
@@ -30,7 +30,7 @@ function SceneManager(canvas) {
 
     function buildCamera() {
         const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 20000);
-        camera.position.set(30, 30, 100);
+        camera.position.set(300, 200, -1000);
         return camera;
     }
 
@@ -52,7 +52,7 @@ function SceneManager(canvas) {
 
         sun.x = Math.cos(phi);
         sun.y = Math.sin(phi) * Math.sin(theta);
-        sun.z = Math.sin(phi) * Math.cos(theta);
+        sun.z = -Math.sin(phi) * Math.cos(theta);
 
         sky.material.uniforms['sunPosition'].value.copy(sun);
 
@@ -61,7 +61,7 @@ function SceneManager(canvas) {
     }
 
     function buildWater() {
-        const waterGeometry = new THREE.PlaneGeometry(10000, 10000);
+        const waterGeometry = new THREE.PlaneGeometry(10000, 5000);
         const water = new Water(
           waterGeometry,
           {
@@ -73,7 +73,7 @@ function SceneManager(canvas) {
             alpha: 1.0,
             sunDirection: new THREE.Vector3(),
             sunColor: 0xffffff,
-            waterColor: 0x001e0f,
+            waterColor: 0x7ac5cd,
             distortionScale: 3.7,
             fog: scene.fog !== undefined
           }
@@ -85,22 +85,28 @@ function SceneManager(canvas) {
         return water;
     }
   
-    function buildSphere() {
-        const geometry = new THREE.SphereGeometry(20, 100, 100);
-        const material = new THREE.MeshStandardMaterial( {
-            color: 0xfcc742} );
+    function buildSand() {
+        const loader = new THREE.TextureLoader;
+        const geometry = new THREE.PlaneGeometry(10000, 5000);
+        const material = new THREE.MeshBasicMaterial( {
+            map: loader.load('assets/images/areia.jpg', function ( texture ) {
+                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+                texture.repeat.set( 300, 60 );
+            })} );
 
-        const sphere = new THREE.Mesh(geometry, material);
-        scene.add(sphere);
-        return sphere;
+        const sand = new THREE.Mesh(geometry, material);
+
+        sand.rotation.x = 99;
+        scene.add(sand);
+        return sand;
     }
 
     function setOrbitControls() {
         const controls = new OrbitControls(camera, renderer.domElement);
-        controls.maxPolarAngle = Math.PI * 0.495;
+        controls.maxPolarAngle = Math.PI * 0.450;
         controls.target.set(0, 10, 0);
-        controls.minDistance = 40.0;
-        controls.maxDistance = 200.0;
+        controls.minDistance = 300.0;
+        controls.maxDistance = 800.0;
         controls.update();
         return controls;
     }
@@ -109,10 +115,6 @@ function SceneManager(canvas) {
         // Animates water
         water.material.uniforms[ 'time' ].value += 1.0 / 60.0;
 
-        const time = performance.now() * 0.001;
-        sphere.position.y = Math.sin( time ) * 2;
-        sphere.rotation.x = time * 0.3;
-        sphere.rotation.z = time * 0.3;
         renderer.render(scene, camera);
     }
 
@@ -131,4 +133,5 @@ function animate() {
     requestAnimationFrame(animate);
     sceneManager.update();
 }
+
 animate();
