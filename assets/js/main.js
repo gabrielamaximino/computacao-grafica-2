@@ -3,6 +3,9 @@ import { OrbitControls } from "./externo/OrbitControls.js"
 import { Water } from './externo/Water.js'
 import { Sky } from './externo/Sky.js'
 import { GLTFLoader } from './externo/GLTFLoader.js';
+var mixer;
+var clock = new THREE.Clock();
+
 
 // Fonte: https://www.liquid.fish/current/threejs
 function SceneManager(canvas) {
@@ -17,8 +20,26 @@ function SceneManager(canvas) {
     const orbitCon = setOrbitControls();
     const model = buildModels();
 
+
     function buildModels() {
         const loader = new GLTFLoader();
+
+        //nadador
+        loader.load("./assets/modelos/swimmer/scene.gltf", function (gltf) {
+
+            var nadador = gltf.scene;
+            nadador.scale.set(10, 10, 10);
+            nadador.position.set(0, -95, 700);
+            nadador.rotation.y = 0.0;
+
+            //Animando
+            mixer = new THREE.AnimationMixer(gltf.scene);
+            console.log(gltf.animations);
+            mixer.clipAction(gltf.animations[0]).play();
+
+            scene.add(nadador);
+
+        });
 
         // garota em pe
         loader.load('assets/modelos/garota-em-pe/scene.gltf', function (gltf) {
@@ -67,11 +88,17 @@ function SceneManager(canvas) {
 
         })
         // bola volei
-        loader.load('assets/modelos/bola-volei/scene.gltf', function (gltf) {
+        loader.load('assets/modelos/bola/scene.gltf', function (gltf) {
             const bola = gltf.scene;
 
+            bola.traverse(function (model) {
+                if (model.isMesh) {
+                    model.castShadow = true;
+                }
+            });
+
             gltf.scene.scale.set(0.75, 0.75, 0.75);
-            bola.position.set(-1700, 60, -1000);
+            bola.position.set(-1200, 60, -1000);
             // rede.rotation.set(0, -300, 0)
 
             scene.add(bola);
@@ -98,6 +125,29 @@ function SceneManager(canvas) {
             rede.rotation.set(0, -300, 0)
 
             scene.add(rede);
+
+        }, undefined, function (error) {
+
+            console.error(error);
+
+        })
+
+
+        //prancha
+        loader.load('assets/modelos/prancha/scene.gltf', function (gltf) {
+            const prancha = gltf.scene;
+
+            prancha.traverse(function (model) {
+                if (model.isMesh) {
+                    model.castShadow = true;
+                }
+            });
+
+            gltf.scene.scale.set(20, 20, 20);
+            prancha.position.set(500, 70, -60);
+            prancha.rotation.set(0, 300, 0)
+
+            scene.add(prancha);
 
         }, undefined, function (error) {
 
@@ -277,13 +327,13 @@ function SceneManager(canvas) {
             light.target.position.set(-150, 0, -200);
             light.castShadow = true;
 
-            let d = 1000;
+            let d = 4000;
             let mapSize = 10000;
             light.shadow.radius = 1000;
             light.shadow.mapSize.width = mapSize;
             light.shadow.mapSize.height = mapSize;
-            light.shadow.camera.top = light.shadow.camera.right = d;
-            light.shadow.camera.bottom = light.shadow.camera.left = -d;
+            light.shadow.camera.top = light.shadow.camera.right = -d;
+            light.shadow.camera.bottom = light.shadow.camera.left = d;
             light.shadow.camera.near = 1;
             light.shadow.camera.far = 5000;
 
@@ -476,6 +526,7 @@ const sceneManager = new SceneManager(canvas);
 
 function animate() {
     requestAnimationFrame(animate);
+    if (mixer) mixer.update(clock.getDelta());
     sceneManager.update();
 }
 
