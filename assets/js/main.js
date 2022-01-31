@@ -6,7 +6,7 @@ import { GLTFLoader } from './externo/GLTFLoader.js';
 var mixer;
 var clock = new THREE.Clock();
 
-
+var nadador;
 // Fonte: https://www.liquid.fish/current/threejs
 function SceneManager(canvas) {
 
@@ -27,11 +27,9 @@ function SceneManager(canvas) {
         //nadador
         loader.load("./assets/modelos/swimmer/scene.gltf", function (gltf) {
 
-            var nadador = gltf.scene;
+            nadador = gltf.scene;
             nadador.scale.set(10, 10, 10);
-            nadador.position.set(0, -95, 700);
-            nadador.rotation.y = 0.0;
-
+            nadador.position.set(1200, -95, 700);
             //Animando
             mixer = new THREE.AnimationMixer(gltf.scene);
             console.log(gltf.animations);
@@ -521,12 +519,34 @@ function SceneManager(canvas) {
     window.addEventListener('resize', onWindowResize);
 }
 
+function swimmer_behavior() {
+    if (695 <= nadador.position.z && nadador.position.z < 2000 && nadador.position.x == 1200) {
+        if (nadador.rotation.y == -300) { nadador.rotation.y = 0 }
+        nadador.position.z += 5;
+    }
+    else if (nadador.position.x < -2000 && nadador.position.z >= 700) {
+        nadador.rotation.y = 600;
+        nadador.position.z -= 5;
+    }
+    else if (nadador.position.z < 700) {
+        nadador.rotation.y = -300;
+        nadador.position.x += 5;
+    }
+    else if (nadador.position.z >= 2000) {
+        nadador.rotation.y = 300;
+        nadador.position.x -= 5;
+    }
+}
+
 const canvas = document.getElementById("canvas");
 const sceneManager = new SceneManager(canvas);
 
 function animate() {
     requestAnimationFrame(animate);
     if (mixer) mixer.update(clock.getDelta());
+
+    swimmer_behavior();
+
     sceneManager.update();
 }
 
