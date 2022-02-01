@@ -2,7 +2,7 @@ import * as THREE from '../externo/three.module.js';
 
 
 export function buildScene() {
-    return new THREE.Scene()
+    return new THREE.Scene();
 }
 
 

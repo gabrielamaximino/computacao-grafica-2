@@ -5,55 +5,6 @@ const loader = new GLTFLoader();
 
 var scene;
 
-
-// function Swimmer() {
-//     var swimmer = THREE.Scene; 
-//     var SwimmerMixer = THREE.AnimationMixer;
-
-//     loader.load('assets/modelos/swimmer/scene.gltf', function(gltf) {
-//         swimmer = gltf.scene;
-//         swimmer.scale.set(10, 10, 10);
-//         swimmer.position.set(1200, -95, 700);
-
-//         //Animando
-//         SwimmerMixer = new THREE.AnimationMixer(gltf.scene);
-//         SwimmerMixer.clipAction(gltf.animations[0]).play();
-//         console.log('a',SwimmerMixer);
-
-//         scene.add(swimmer);
-//     });
-
-//     this.swimmerMixer = function() {
-//         return SwimmerMixer;
-//     }
-
-//     this.updateMixer = function(clockDelta) {
-//         SwimmerMixer.update(clockDelta);
-//     }
-
-//     this.swim = function() {
-//         if (695 <= swimmer.position.z && swimmer.position.z < 2000 && swimmer.position.x == 1200) {
-//             if (swimmer.rotation.y == -300) { 
-//                 swimmer.rotation.y = 0 
-//             }
-            
-//             swimmer.position.z += 5;
-        
-//         } else if (swimmer.position.x < -2000 && swimmer.position.z >= 700) {
-//             swimmer.rotation.y = 600;
-//             swimmer.position.z -= 5;
-        
-//         } else if (swimmer.position.z < 700) {
-//             swimmer.rotation.y = -300;
-//             swimmer.position.x += 5;
-        
-//         } else if (swimmer.position.z >= 2000) {
-//             swimmer.rotation.y = 300;
-//             swimmer.position.x -= 5;
-//         }
-//     }
-// }
-
 function GirlStanding() {
     loader.load('assets/modelos/garota-em-pe/scene.gltf', function(gltf) {
         const girl = gltf.scene;
@@ -366,10 +317,4 @@ export function buildStaticModels(currentScene) {
     Coke();
     Umbrella();
     Chair();
-}
-
-export function buildAnimatedModels(currentScene) {
-    scene = currentScene;
-
-    return new Swimmer();
 }

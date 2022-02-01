@@ -12,12 +12,13 @@ import { GLTFLoader } from './externo/GLTFLoader.js';
 
 var clock = new THREE.Clock();
 var swimmer, swimmerMixer, birds, birdsMixer;
+
 const loader = new GLTFLoader();
 
 function SceneManager(canvas) {
     const scene = Scene.buildScene();
-    const renderer = Scene.buildRenderer(canvas);
     const camera = Scene.buildCamera();
+    const renderer = Scene.buildRenderer(canvas);
     
     Light.build(scene);
     Sand.build(scene);
@@ -39,7 +40,7 @@ function SceneManager(canvas) {
         swimmer.scale.set(10, 10, 10);
         swimmer.position.set(1200, -95, 700);
 
-        //Animando
+        //Animates
         swimmerMixer = new THREE.AnimationMixer(gltf.scene);
         
         swimmerMixer.clipAction(gltf.animations[0]).play();
@@ -57,7 +58,7 @@ function SceneManager(canvas) {
         birds.position.set(-1000, 500, -500);
 
 
-        // Animando
+        // Animates
         birdsMixer = new THREE.AnimationMixer(gltf.scene);
 
         birdsMixer.clipAction(gltf.animations[0]).play();
