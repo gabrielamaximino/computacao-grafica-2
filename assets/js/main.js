@@ -9,10 +9,9 @@ import * as OrbitControls from './elementos/orbitControls.js';
 import * as Models from './elementos/models.js';
 import { GLTFLoader } from './externo/GLTFLoader.js';
 
-// Fonte: https://www.liquid.fish/current/threejs
 
 var clock = new THREE.Clock();
-var swimmer, mixer;
+var swimmer, swimmerMixer, birds, birdsMixer;
 const loader = new GLTFLoader();
 
 function SceneManager(canvas) {
@@ -41,22 +40,41 @@ function SceneManager(canvas) {
         swimmer.position.set(1200, -95, 700);
 
         //Animando
-        mixer = new THREE.AnimationMixer(gltf.scene);
-        console.log(gltf.animations);
-        mixer.clipAction(gltf.animations[0]).play();
+        swimmerMixer = new THREE.AnimationMixer(gltf.scene);
+        
+        swimmerMixer.clipAction(gltf.animations[0]).play();
 
         scene.add(swimmer);
 
     });
 
-    
+    // build birds
+    loader.load('/assets/modelos/passaros/scene.gltf', function(gltf) {
+        birds = gltf.scene;
+
+        birds.scale.set(100, 100, 100);
+        birds.rotation.y = 180;
+        birds.position.set(-1000, 500, -500);
+
+
+        // Animando
+        birdsMixer = new THREE.AnimationMixer(gltf.scene);
+
+        birdsMixer.clipAction(gltf.animations[0]).play();
+
+        scene.add(birds);
+    })
+
 
     this.update = function () {
         // Animates water
-        water.material.uniforms['time'].value += 1.0 / 60.0;
+        water.material.uniforms['time'].value += 2.0 / 60.0;
 
         // Swimmer
         swimmer_behavior();
+
+        // Birds
+        birds_behavior();
         
         renderer.render(scene, camera);
     }
@@ -78,7 +96,11 @@ const sceneManager = new SceneManager(canvas);
 function animate() {
     requestAnimationFrame(animate);
 
-    if (mixer) mixer.update(clock.getDelta());
+    const delta = clock.getDelta();
+
+    if (swimmerMixer) swimmerMixer.update(delta);
+
+    if (birdsMixer) birdsMixer.update(delta);
     
     sceneManager.update();
 }
@@ -88,19 +110,27 @@ animate();
 
 function swimmer_behavior() {
     if (695 <= swimmer.position.z && swimmer.position.z < 2000 && swimmer.position.x == 1200) {
-        if (swimmer.rotation.y == -300) { swimmer.rotation.y = 0 }
+        if (swimmer.rotation.y == -300) { 
+            swimmer.rotation.y = 0 
+        }
+        
         swimmer.position.z += 5;
-    }
-    else if (swimmer.position.x < -2000 && swimmer.position.z >= 700) {
+    
+    } else if (swimmer.position.x < -2000 && swimmer.position.z >= 700) {
         swimmer.rotation.y = 600;
         swimmer.position.z -= 5;
-    }
-    else if (swimmer.position.z < 700) {
+    
+    } else if (swimmer.position.z < 700) {
         swimmer.rotation.y = -300;
         swimmer.position.x += 5;
-    }
-    else if (swimmer.position.z >= 2000) {
+    
+    } else if (swimmer.position.z >= 2000) {
         swimmer.rotation.y = 300;
         swimmer.position.x -= 5;
     }
+}
+
+function birds_behavior() {
+    if (birds.position.x < 4000)
+        birds.position.x += 2
 }

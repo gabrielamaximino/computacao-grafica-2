@@ -7,9 +7,9 @@ export function buildScene() {
 
 
 export function buildCamera() {
-    const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 20000);
+    const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 1, 20000);
     
-    camera.position.set(0, 0, 1000);
+    camera.position.set(0, 100, 1000);
     
     return camera;
 }
