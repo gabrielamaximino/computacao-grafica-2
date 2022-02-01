@@ -131,6 +131,6 @@ function swimmer_behavior() {
 }
 
 function birds_behavior() {
-    if (birds.position.x < 4000)
+    if (birds.position.x < 10000)
         birds.position.x += 2
 }
